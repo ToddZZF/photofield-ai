@@ -1,0 +1,84 @@
+# Commands to run, build, and package the app
+#
+# See https://taskfile.dev/ for instructions on how to use Taskfile.yml
+#
+# Run `task` to see the list of tasks
+version: '3'
+
+vars:
+  BINARY_NAME: photofield-ai
+  DOCKER_REPO: ghcr.io/smilyorg/photofield-ai
+  VERSION:
+    sh: git describe --tags --match "v*" --always --dirty
+
+tasks:
+  default:
+    cmds:
+      - task --list
+      - echo ""
+      - echo "Common tasks:"
+      - "echo '  task run: Run the server'"
+      - "echo '  task watch: Run the server in watch mode with auto-reload'"
+      - "echo '  task docker: Build a Docker image'"
+    silent: true
+
+  commit:analyze:
+    desc: Analyze git state for LLM commit assistant (current branch and staged changes)
+    cmds:
+      - echo "Current branch:" $(git branch --show-current)
+      - echo ""
+      - echo "=== STAGED FILES ==="
+      - git diff --cached --stat || echo "No staged changes"
+      - echo ""
+      - echo "=== STAGED CHANGES ==="
+      - git diff --cached || echo "No staged changes"
+    silent: true
+
+  run:
+    desc: Run the server
+    cmds:
+      - uv run python main.py
+
+  watch:
+    desc: Run the server in watch mode with auto-reload
+    cmds:
+      - uv run uvicorn main:app --reload --port 8081
+
+  docker:
+    desc: Build a Docker image
+    cmds:
+      - docker build -t {{.DOCKER_REPO}}:{{.VERSION}} -t {{.DOCKER_REPO}}:latest .
+
+  docker:slim:
+    desc: Build a slim Docker image using docker-slim
+    deps:
+      - docker
+    cmds:
+      - |
+        docker run -it --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          dslim/docker-slim \
+          build \
+          --tag {{.DOCKER_REPO}}:{{.VERSION}}-slim \
+          --tag {{.DOCKER_REPO}}:slim \
+          --include-shell \
+          --exclude-pattern=/usr/local/lib/python3.10/site-packages/protobuf-3.20.1-py3.10-nspkg.pth \
+          {{.DOCKER_REPO}}:{{.VERSION}}
+
+  sync:
+    desc: Install and sync dependencies
+    cmds:
+      - uv sync
+
+  update:
+    desc: Update dependencies to latest versions
+    cmds:
+      - uv lock --upgrade
+
+  clean:
+    desc: Clean build artifacts and cache
+    cmds:
+      - rm -rf __pycache__
+      - rm -rf .pytest_cache
+      - rm -rf dist
+      - rm -rf build
