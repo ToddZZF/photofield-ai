@@ -15,8 +15,3 @@ dependencies = [
     "uvicorn>=0.34.2",
 ]
 
-[tool.uv.workspace]
-members = [
-    "uform",
-    "pai-uform",
-]
