@@ -8,8 +8,6 @@ import json
 import time
 import io
 import urllib.request
-import urllib.error
-from pathlib import Path
 from statistics import mean, stdev
 
 from PIL import Image
