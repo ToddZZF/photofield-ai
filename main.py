@@ -13,6 +13,7 @@ import uvicorn
 from cliponnx.download import ensure_model
 
 from cliponnx.models import VisualModel, TextualModel, get_available_providers
+from pathlib import Path
 
 host = environ.get("PHOTOFIELD_AI_HOST", default="0.0.0.0")
 port = environ.get("PHOTOFIELD_AI_PORT", default="8081")
@@ -43,6 +44,12 @@ async def run_async(fn, *args):
 async def lifespan(app: FastAPI):
     # Startup: Initialize models and providers
     global providers, visual, textual, visual_comp, textual_comp
+    
+    models_path = Path(models_dir)
+    if not models_path.exists():
+        raise FileNotFoundError(f"Models directory does not exist: {models_dir}")
+    if not models_path.is_dir():
+        raise NotADirectoryError(f"Models path is not a directory: {models_dir}")
     
     visual_file_path = ensure_model(visual_path, models_dir)
     textual_file_path = ensure_model(textual_path, models_dir)

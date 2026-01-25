@@ -75,6 +75,11 @@ tasks:
     cmds:
       - uv lock --upgrade
 
+  benchmark:
+    desc: Run performance benchmarks (requires server to be running)
+    cmds:
+      - uv run python benchmark.py
+
   clean:
     desc: Clean build artifacts and cache
     cmds:

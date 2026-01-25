@@ -34,7 +34,8 @@
     <li><a href="#getting-started">Getting Started</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#configuration">Configuration</a></li>
-    <li><a href="#development-setup">Development Setup</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#development">Development</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
@@ -45,32 +46,28 @@
 
 ## About
 
-Photofield AI is a companion to [Photofield] providing AI features. It's a
-separate REST API service both to keep the main app slim and because AI features
-are currently easier to implement in Python as opposed to Go. It is an API
-currently exposing the [OpenAI CLIP] image and text embedding functionality.
+Photofield AI is a machine learning companion service for [Photofield], providing semantic image search capabilities through [OpenAI CLIP] embeddings. It's a separate REST API service designed to keep the main app lightweight while leveraging Python's AI ecosystem.
+
+**Quick Start:** `docker run -it -p 8081:8081 ghcr.io/smilyorg/photofield-ai:latest`
 
 ### Features
 
-Returns [OpenAI CLIP] images and text embeddings that you can then compare with
-[Cosine similarity] for use in semantic image search. Image embedding runs at up
-to ~20 requests/sec on an i7-5820K CPU and up to ~200 requests/sec using a
-GeForce GTX 1070 Ti. Resource utilization with a GPU is low, so I imagine there
-are some bottlenecks in some parts of the system, but 200 requests/sec seems
-plenty enough as is.
+* **Fast CLIP Embeddings** - Convert images and text to semantic vectors for similarity search
+* **High Performance** - ~20 req/sec (i7-5820K CPU), ~200 req/sec (GTX 1070 Ti GPU)
+* **Multiple Models** - Support for various CLIP model sizes and quantization levels
+* **Easy Integration** - Simple REST API with multipart image uploads
+* **Docker Ready** - Pre-built images available on GitHub Container Registry
+* **Modern Stack** - Built with FastAPI, ONNX Runtime, and Python 3.13+
+
+Run `uv run python benchmark.py` to benchmark on your own hardware.
 
 ### Limitations
 
-The current REST API is tied pretty closely to [Photofield]. The machine
-learning model itself also has some limitations and bias, as was reported by
-OpenAI:
+The current REST API is designed for [Photofield] integration. The CLIP model itself has some limitations as noted by OpenAI:
 
-_CLIP and our analysis of it have a number of limitations. CLIP currently
-struggles with respect to certain tasks such as fine grained classification and
-counting objects. CLIP also poses issues with regards to fairness and bias which
-we discuss in the paper and briefly in the next section._
+_CLIP currently struggles with respect to certain tasks such as fine grained classification and counting objects. CLIP also poses issues with regards to fairness and bias which we discuss in the paper and briefly in the next section._
 
-See more on model use in the [CLIP: Model Use] section of the model card from OpenAI.
+See the [CLIP: Model Use] section for more details on responsible model usage.
 
 ### Built With
 
@@ -83,18 +80,27 @@ See more on model use in the [CLIP: Model Use] section of the model card from Op
 
 ## Getting Started
 
-### Docker
+Choose one of the following methods to run Photofield AI:
 
-`docker run -it -p 8081:8081 ghcr.io/smilyorg/photofield-ai:latest`
+### Quick Start with Docker (Recommended)
 
-The `clip-vit-base-patch32-(visual|textual)-float16` models are currently
-bundled for a good out-of-the-box experience.
+The easiest way to get started is using Docker:
 
-The Docker image is currently CPU-only as I'm currently unable to test Docker
-GPU support (help wanted).
+```bash
+docker run -it -p 8081:8081 ghcr.io/smilyorg/photofield-ai:latest
+```
 
-Connect it with [photofield] by adding the following snippet to its
-`configuration.yaml`:
+The `clip-vit-base-patch32-(visual|textual)-float16` models are bundled for an out-of-the-box experience.
+
+**Note:** The Docker image is currently CPU-only. GPU support contributions are welcome!
+
+#### Verify it's running
+
+Open [http://localhost:8081/docs](http://localhost:8081/docs) in your browser to see the API documentation.
+
+#### Connect with Photofield
+
+Add the following to your Photofield `configuration.yaml`:
 
 ```yaml
 ai:
@@ -102,43 +108,65 @@ ai:
   host: http://localhost:8081
 ```
 
-### From Source
+### Install with uv (Development)
+
+For development or customization, install from source using [uv]:
 
 #### Prerequisites
 
-1. [Python]
-2. [uv]
+- [Python] 3.13 or later
+- [uv] (recommended) or pip
 
-#### Setup
+#### Quick Install
 
-1. [Download the
-   source](https://github.com/SmilyOrg/photofield-ai/archive/refs/heads/main.zip)
-   or clone the Git repository
-2. In the source directory you downloaded, run `uv sync` to install the
-   required dependencies.
-3. After [uv] installs all the required dependencies, the server should be
-   ready to run.
+```bash
+# Clone the repository
+git clone https://github.com/smilyorg/photofield-ai.git
+cd photofield-ai
 
-#### Run
+# Install dependencies
+uv sync
 
-Run the server with `uv run python main.py`. If you don't specify any model
-files, it should first download the default models and then start listening to
-requests.
+# Run the server
+uv run python main.py
+```
+
+Or use [Task] for convenience:
+
+```bash
+task run    # Run the server
+task watch  # Run with auto-reload
+```
+
+#### First Run
+
+On first run, the server will download the default models (~300MB) and then start:
 
 ```
 ❯ uv run python main.py
-Available providers: TensorrtExecutionProvider, CUDAExecutionProvider, CPUExecutionProvider
-Using providers: TensorrtExecutionProvider, CUDAExecutionProvider, CPUExecutionProvider
+Available providers: CPUExecutionProvider
+Using providers: CPUExecutionProvider
 Loading visual model: models/clip-vit-base-patch32-visual-float16.onnx
 Loading textual model: models/clip-vit-base-patch32-textual-float16.onnx
-2022-10-08 14:28:35.9706571 [W:onnxruntime:Default, tensorrt_execution_provider.h:60 onnxruntime::TensorrtLogger::log] [2022-10-08 13:28:35 WARNING] external\onnx-tensorrt\onnx2trt_utils.cpp:369: Your ONNX model has been generated with INT64 weights, while TensorRT does not natively support INT64. Attempting to cast down to INT32.
-
 Visual inference ready, input size 224, type tensor(float16)
 Textual inference ready, input size 77, type tensor(int32)
 Listening on 0.0.0.0:8081
 ```
 
-If you are starting it with GPU support (default) it may take some time for it to start up. The `WARNING` above is to be expected for the TensorRT runtime, it seems to work fine regardless.
+### Build Your Own Docker Image
+
+If you want to build the Docker image locally:
+
+```bash
+# Build the image
+task docker
+
+# Or manually
+docker build -t photofield-ai .
+
+# Run your local build
+docker run -it -p 8081:8081 photofield-ai
+```
 
 # Usage
 
@@ -257,29 +285,89 @@ other, however combining different data types might work fine.
 Note that the `qint8` models don't seem to work right now, so use `quint8` ones
 instead.
 
-## Development Setup
+## Troubleshooting
+
+### Server won't start
+
+**Issue:** Server fails to start or crashes immediately
+
+**Solutions:**
+- Ensure you have Python 3.13 or later: `python --version`
+- Make sure dependencies are installed: `uv sync`
+- Check if port 8081 is already in use: `lsof -i :8081` (Linux/Mac) or `netstat -ano | findstr :8081` (Windows)
+
+### Models not downloading
+
+**Issue:** First run doesn't download models or fails partway through
+
+**Solutions:**
+- Check your internet connection
+- Verify you have ~300MB of free disk space
+- Try downloading models manually from [clip-variants models] and place them in the `models/` directory
+
+### GPU not being used
+
+**Issue:** Server runs but only uses CPU
+
+**Solutions:**
+- Verify GPU support: The server will print available providers on startup
+- Install GPU-specific dependencies for your hardware (CUDA for NVIDIA, etc.)
+- Set `PHOTOFIELD_AI_RUNTIME=all` to enable all available providers
+- Check [ONNX Runtime] documentation for GPU prerequisites
+
+### Out of Memory errors
+
+**Issue:** Server crashes with memory errors during inference
+
+**Solutions:**
+- Use smaller models (e.g., `patch16` instead of `patch32`)
+- Reduce batch sizes if processing multiple images
+- Switch to CPU execution: `PHOTOFIELD_AI_RUNTIME=cpu`
+
+### Connection issues with Photofield
+
+**Issue:** Photofield can't connect to the AI server
+
+**Solutions:**
+- Verify the server is running: `curl http://localhost:8081/docs`
+- Check the `host` URL in Photofield's `configuration.yaml`
+- If using Docker, ensure the port mapping is correct: `-p 8081:8081`
+- Check firewall settings if running on different machines
+
+## Development
+
+For development work on Photofield AI itself:
 
 ### Prerequisites
 
-* [Python]
+* [Python] 3.13 or later
 * [uv] - for dependency management
-* [Task] - to run common commands conveniently
+* [Task] - for running development tasks
 
-### Installation
+### Setup
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/smilyorg/photofield-ai.git
-   ```
-2. Install Python dependencies
-   ```sh
-   uv sync
-   ```
+```bash
+git clone https://github.com/smilyorg/photofield-ai.git
+cd photofield-ai
+uv sync
+```
 
-### Running
+### Available Tasks
 
-* `task watch` to watch the source files and auto-reload the server
-* or `task run` to run the server
+Run `task` to see all available tasks, or use these common ones:
+
+* `task run` - Run the server
+* `task watch` - Run with auto-reload for development
+* `task benchmark` - Run performance benchmarks
+* `task docker` - Build Docker image
+* `task sync` - Install/sync dependencies
+* `task update` - Update dependencies to latest versions
+* `task clean` - Clean build artifacts and cache
+
+### Testing & Benchmarks
+
+* Run `task benchmark` to benchmark performance on your hardware (requires server running in another terminal)
+* Test API endpoints with example requests in [examples.http](examples.http) using the [REST Client] extension for VSCode
 
 ## Contributing
 
