@@ -75,6 +75,7 @@ See more on model use in the [CLIP: Model Use] section of the model card from Op
 ### Built With
 
 * [Python]
+* [uv] - dependency management
 * [FastAPI] - REST API framework
 * [ONNX Runtime] - machine learning inference
 * [CLIP Variants] - CLIP converted to ONNX (by yours truly)
@@ -106,28 +107,26 @@ ai:
 #### Prerequisites
 
 1. [Python]
-2. [Poetry]
+2. [uv]
 
 #### Setup
 
 1. [Download the
    source](https://github.com/SmilyOrg/photofield-ai/archive/refs/heads/main.zip)
    or clone the Git repository
-2. In the source directory you downloaded, run `poetry install` to install the
-   required dependencies. You can also run `poetry install --without gpu` to
-   skip installing GPU dependencies if you want to run it on CPU only (it is
-   also a smaller install).
-3. After [Poetry] installs all the required dependencies, the server should be
+2. In the source directory you downloaded, run `uv sync` to install the
+   required dependencies.
+3. After [uv] installs all the required dependencies, the server should be
    ready to run.
 
 #### Run
 
-Run the server with `poetry run python main.py`. If you don't specify any model
+Run the server with `uv run python main.py`. If you don't specify any model
 files, it should first download the default models and then start listening to
 requests.
 
 ```
-❯ poetry run python main.py
+❯ uv run python main.py
 Available providers: TensorrtExecutionProvider, CUDAExecutionProvider, CPUExecutionProvider
 Using providers: TensorrtExecutionProvider, CUDAExecutionProvider, CPUExecutionProvider
 Loading visual model: models/clip-vit-base-patch32-visual-float16.onnx
@@ -263,11 +262,8 @@ instead.
 ### Prerequisites
 
 * [Python]
-* [Poetry] - for dependency management
-* [just] - to run common commands conveniently
-* sh-like shell (e.g. sh, bash, busybox) - required by `just`
-
-**[Scoop] (Windows)**: `scoop install busybox just`
+* [uv] - for dependency management
+* [Task] - to run common commands conveniently
 
 ### Installation
 
@@ -277,14 +273,13 @@ instead.
    ```
 2. Install Python dependencies
    ```sh
-   poetry install
+   uv sync
    ```
 
 ### Running
 
-* `poetry shell` to enter the virtual environment and `just watch` the source
-  files and auto-reload the server
-* or `just run` the server
+* `task watch` to watch the source files and auto-reload the server
+* or `task run` to run the server
 
 ## Contributing
 
@@ -315,18 +310,15 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 [Python]: https://www.python.org/
 [Git]: https://git-scm.com/downloads
-[Poetry]: https://python-poetry.org/docs/#installation
+[uv]: https://docs.astral.sh/uv/
 [FastAPI]: https://fastapi.tiangolo.com/
 [ONNX Runtime]: https://onnxruntime.ai/
 [CLIP Variants]: https://huggingface.co/mlunar/clip-variants
 [clip-variants models]: https://huggingface.co/mlunar/clip-variants/tree/main/models
 [REST Client]: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+[Task]: https://taskfile.dev/
 
 [Configuration]: #configuration
 
 [open an issue]: https://github.com/SmilyOrg/photofield-ai/issues
 [Getting Started]: #getting-started
-
-[Scoop]: https://scoop.sh/
-[just]: https://github.com/casey/just
-[watchexec]: https://github.com/watchexec/watchexec
