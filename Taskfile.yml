@@ -49,22 +49,6 @@ tasks:
     cmds:
       - docker build -t {{.DOCKER_REPO}}:{{.VERSION}} -t {{.DOCKER_REPO}}:latest .
 
-  docker:slim:
-    desc: Build a slim Docker image using docker-slim
-    deps:
-      - docker
-    cmds:
-      - |
-        docker run -it --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          dslim/docker-slim \
-          build \
-          --tag {{.DOCKER_REPO}}:{{.VERSION}}-slim \
-          --tag {{.DOCKER_REPO}}:slim \
-          --include-shell \
-          --exclude-pattern=/usr/local/lib/python3.10/site-packages/protobuf-3.20.1-py3.10-nspkg.pth \
-          {{.DOCKER_REPO}}:{{.VERSION}}
-
   sync:
     desc: Install and sync dependencies
     cmds:
