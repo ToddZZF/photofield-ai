@@ -18,7 +18,8 @@ COPY pyproject.toml uv.lock ./
 # Install dependencies using system Python
 RUN uv sync --frozen --no-dev --no-install-project --python $(which python3)
 
-COPY models/clip-*.onnx models/
+COPY models/*.onnx models/
+COPY models/*.onnx.data models/
 COPY cliponnx cliponnx
 COPY main.py ./
 

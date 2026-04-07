@@ -18,8 +18,8 @@ from pathlib import Path
 host = environ.get("PHOTOFIELD_AI_HOST", default="0.0.0.0")
 port = environ.get("PHOTOFIELD_AI_PORT", default="8081")
 models_dir = environ.get("PHOTOFIELD_AI_MODELS_DIR", default="models/")
-visual_path = environ.get("PHOTOFIELD_AI_VISUAL_MODEL", default="https://huggingface.co/mlunar/clip-variants/resolve/main/models/clip-vit-base-patch32-visual-float16.onnx")
-textual_path = environ.get("PHOTOFIELD_AI_TEXTUAL_MODEL", default="https://huggingface.co/mlunar/clip-variants/resolve/main/models/clip-vit-base-patch32-textual-float16.onnx")
+visual_path = environ.get("PHOTOFIELD_AI_VISUAL_MODEL", default="https://huggingface.co/RuteNL/MobileCLIP2-S3-OpenCLIP-ONNX/resolve/main/visual.onnx")
+textual_path = environ.get("PHOTOFIELD_AI_TEXTUAL_MODEL", default="https://huggingface.co/RuteNL/MobileCLIP2-S3-OpenCLIP-ONNX/resolve/main/text.onnx")
 runtime = environ.get("PHOTOFIELD_AI_RUNTIME", default="all")
 providers_env = environ.get("PHOTOFIELD_AI_PROVIDERS")
 

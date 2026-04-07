@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from urllib.error import HTTPError
 import urllib.request
 from tqdm import tqdm
 import os
@@ -14,9 +15,18 @@ def ensure_model(path_or_url, dir):
     if path_or_url.startswith("http"):
         u = urlparse(path_or_url)
         filename = u.path.split("/")[-1]
-        path = f"{dir}{filename}"
+        path = os.path.join(dir, filename)
         if not os.path.exists(path):
             download(path_or_url, path)
+        if filename.endswith(".onnx"):
+            data_filename = f"{filename}.data"
+            data_path = os.path.join(dir, data_filename)
+            if not os.path.exists(data_path):
+                try:
+                    download(f"{path_or_url}.data", data_path)
+                except HTTPError as e:
+                    if e.code != 404:
+                        raise
     if not os.path.exists(path):
         raise FileNotFoundError(f"Model not found: {path}")
     return path
